@@ -1,0 +1,46 @@
+
+.row {
+	width:   99%;
+}
+
+.left, .tag {
+	float:  left;
+}
+
+.right,.value {
+	float: right;
+}
+
+.center {
+	text-align:center;
+}
+
+.row:after {
+  content:    "";
+  display: table;
+  clear:    both;
+}
+
+hr.striped  {
+	border: 1px dashed #000;
+	width: 70%;
+	margin: auto;
+	margin-top: 2%;
+	margin-bottom: 2%;
+}
+
+body {
+	font-size: 12px;
+	font-style: normal;
+/*	font-family: "Times New Roman", Times, serif;*/
+	font-family: "Courier New", Courier, monospace;
+	box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5);
+	padding:2mm;
+	margin: 0 auto;
+	width: 56mm;
+	background: #FFF;
+}
+
+.ADVERTISE_SECTION {
+/*	background-color: yellow;*/
+}

@@ -1,0 +1,122 @@
+#!/bin/bash
+# Init script to start receipt-service-instance-1
+# chkconfig: 2345 90 10
+
+# Source function library.
+. /etc/init.d/functions
+SERVICE_NAME=receipt-service-instance-1
+NODE_NAME=RECEIPT-SERVICE-INSTANCE-1
+PID_FILE=/var/run/$SERVICE_NAME/pid
+APP_CONF=${rpm.conf.directory}/${app.config.file}
+JAVA_OPTS="-Dfile.encoding=UTF-8 -XX:+UseParallelGC -XX:ParallelGCThreads=2 -XX:+UseParallelOldGC -Xms512m -Xmx1024m -XX:PermSize=128m -XX:MaxPermSize=256m -Dehcache.disk.store.dir=${rpm.log.directory}/$SERVICE_NAME/tmp"
+CONSOLE_LOG=${rpm.log.directory}/$SERVICE_NAME/console.log
+# Print Banner
+echo ======================= SERVICE VARIABLES ========================
+echo ========= SERVICE_NAME: "$SERVICE_NAME"
+echo ============== PIDFILE: "$PID_FILE"
+echo ======== APP_CONF_FILE: "$APP_CONF"
+echo ======== CONSOLE LOG: "$CONSOLE_LOG"
+echo ==================================================================
+
+processConfig(){
+echo "starting config processor ..."
+	java -cp ${rpm.install.directory}/lib/*:${rpm.install.directory}/lib/${config.processor.jarName} com.verifone.cegp.config.processor.TranslateMain ${rpm.install.directory}/$SERVICE_NAME $APP_CONF > ${rpm.log.directory}/$SERVICE_NAME/cegp-config-processor.log
+	exitValue=$?
+     if [ $exitValue != 0 ]
+     then
+         exit $exitValue
+     fi
+     modifyPermissions
+     echo "config processor finished"
+     return 0
+
+}
+
+modifyPermissions(){
+chown -R ${rpm.username}:${rpm.groupname} ${rpm.solution.directory}
+chown -R ${rpm.username}:${rpm.groupname} ${rpm.install.directory}
+chown -R ${rpm.username}:${rpm.groupname} ${rpm.conf.directory}
+chown -R ${rpm.username}:${rpm.groupname} ${rpm.log.directory}
+chmod -R ug+rwx,o-rwx ${rpm.install.directory}
+chmod -R ug+rwx,o-rwx ${rpm.conf.directory}
+chmod -R ug+rwx,o-rwx ${rpm.log.directory}
+}
+
+start() {
+	if  [ ! -f $PID_FILE ]; then
+		mkdir /var/run/$SERVICE_NAME 2> /dev/null
+		chown -R ${rpm.username}:${rpm.groupname} /var/run/$SERVICE_NAME
+		processConfig
+		echo "Starting $SERVICE_NAME..."
+		echo JAVA_OPTS:$JAVA_OPTS
+		su ${rpm.username} -s /bin/sh -c "cd ${rpm.install.directory} ; nohup java $JAVA_OPTS -Dapp.config.dir=${rpm.install.directory}/$SERVICE_NAME -Dlog.dir=${rpm.log.directory}/$SERVICE_NAME -Dlogging.config=${rpm.install.directory}/$SERVICE_NAME/log4j2.xml -Dnode.name=$NODE_NAME -jar ${jarName} > $CONSOLE_LOG" 2> /dev/null &
+		echo $! > /var/run/$SERVICE_NAME/pid
+	else
+		echo "$SERVICE_NAME is already running"
+	fi
+	success
+	return 0;
+}
+
+stop() {
+	if [ -f $PID_FILE ]; then
+	 	echo "Stopping $SERVICE_NAME..."
+	 	PID=`cat $PID_FILE`
+		if ! [ -z "$PID" ]; then
+			CHILDPID=`pgrep -P $PID`
+			if ! [ -z "$CHILDPID" ]; then
+				SUBCHILDPID=`pgrep -P $CHILDPID`
+				kill $CHILDPID
+				if ! [ -z "$SUBCHILDPID" ]; then
+					kill $SUBCHILDPID
+				fi
+			fi
+			kill $PID
+			while [ -d /proc/$PID -a -z "`grep zombie /proc/$PID/status 2> /dev/null`" ] ; do
+			sleep 1
+			done
+			rm $PID_FILE
+			echo "$SERVICE_NAME stopped"
+		else
+			echo "$SERVICE_NAME is not running"
+		fi
+	 else
+	 	echo "$SERVICE_NAME is not running"
+	 fi
+	success
+	return 0
+}
+
+status() {
+	if test -f $PID_FILE && ps -p `cat $PID_FILE` > /dev/null; then
+		 PID=`cat $PID_FILE`
+	     echo "$SERVICE_NAME is running (pid $PID)"
+	else
+	    echo "$SERVICE_NAME is not running"
+	fi
+	
+	return 0
+}
+
+
+
+case "$1" in
+    start)
+        start
+    ;;
+    stop)
+        stop
+    ;;
+    restart)
+        stop
+        start
+    ;;
+    status)
+        status
+    ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|status}"
+        exit 1
+esac
+
+exit 0

@@ -1,0 +1,65 @@
+server.servlet.context-path=/receipt-service
+svc.autoconfigure=true
+svc.service.pool.size=${cegp::svc.service.pool.size,2-10}
+
+#Server Endpoints Registration
+server.port=${cegp::server.port,8080}
+svc.endpoints.server.http=receipts,lb
+
+#mail Configuration
+receipt.mail.host=${cegp::receipt.mail.host}
+receipt.mail.port=${cegp::receipt.mail.port}
+receipt.mail.accountValidation=${cegp::receipt.mail.accountValidation}
+receipt.mail.domainValidation=${cegp::receipt.mail.domainValidation}
+receipt.mail.noReply=${cegp::receipt.mail.noReply}
+
+#Sending Email with Body or Content or attachment
+receipt.email.attachment=${cegp::receipt.email.attachment,no}
+receipt.preformatted.attachment=${cegp::receipt.preformatted.attachment,yes}
+receipt.htmlRender.cmdtype=${cegp::receipt.htmlRender.cmdtype,linux}
+receipt.file.location=${cegp::receipt.file.location}
+receipt.file.chromeLocation=${cegp::receipt.file.chromeLocation}
+receipt.cmd.htmlToPdfCmd=${cegp::receipt.cmd.htmlToPdfCmd}
+receipt.cmd.htmlToPngCmd=${cegp::receipt.cmd.htmlToPngCmd}
+#storing receipt config
+receipt.storeReceipt.enable=${cegp::receipt.storeReceipt.enable,yes}
+
+# Kafka Consumer Configuration
+receipt.kafka.consumerGroupId=${cegp::receipt.kafka.consumerGroupId}
+receipt.kafka.bootstrapServers=${cegp::receipt.kafka.bootstrapServers}
+receipt.kafka.topicName=${cegp::receipt.kafka.topicName}
+receipt.kafka.maxPollRecord=${cegp::receipt.kafka.maxPollRecord}
+receipt.kafka.maxPollInterval=${cegp::receipt.kafka.maxPollInterval}
+receipt.kafka.heartbeatInterval=${cegp::receipt.kafka.heartbeatInterval}
+receipt.kafka.sessionTimeout=${cegp::receipt.kafka.sessionTimeout}
+receipt.kafka.autoOffsetReset=${cegp::receipt.kafka.autoOffsetReset}
+receipt.kafka.concurrency=${cegp::receipt.kafka.concurrency}
+receipt.kafka.syncCommit=${cegp::receipt.kafka.syncCommit}
+receipt.kafka.pollTimeout=${cegp::receipt.kafka.pollTimeout}
+receipt.kafka.ackOnError=${cegp::receipt.kafka.ackOnError}
+
+# Kafka Producer Configuration
+receipt.kafka.batchSize=${cegp::receipt.kafka.batchSize}
+receipt.kafka.bootstrapServerForProducer=${cegp::receipt.kafka.bootstrapServerForProducer}
+receipt.kafka.insertFailureTopic=${cegp::receipt.kafka.insertFailureTopic}
+receipt.kafka.requestTimeOutMS=${cegp::receipt.kafka.requestTimeOutMS}
+receipt.kafka.requestRetries=${cegp::receipt.kafka.requestRetries}
+receipt.kafka.maxInFlightRequestsPerConnection=${cegp::receipt.kafka.maxInFlightRequestsPerConnection}
+
+# To disable Kafka in receipt service we have to comment the below parameter(receipt.services.enable=kafka)
+receipt.services.enable=${cegp::receipt.services.enable,""}
+
+#mongodb Properties
+spring.data.mongodb.host=${cegp::spring.data.mongodb.host}
+spring.data.mongodb.username=${cegp::spring.data.mongodb.username}
+spring.data.mongodb.database.name=${cegp::spring.data.mongodb.database.name}
+spring.data.mongodb.mongodbSecretkey=receiptServiceBlock::mongoPassword
+spring.data.mongodb.repositories.type=${cegp::spring.data.mongodb.repositories.type}
+
+#Vault Registration
+vault.alias=${cegp::vault.alias}
+vault.create=${cegp::vault.create,false}
+vault.enc.file.dir=${cegp::vault.enc.file.dir}
+vault.iteration.count=${cegp::vault.iteration.count,50}
+vault.password=${cegp::vault.password}
+vault.url=${cegp::vault.url}

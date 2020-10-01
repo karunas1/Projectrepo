@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO" monitorInterval="30">
+	<properties>
+		<property name="server-logger">receiptService.logger</property>
+		<property name="error-logger">error.logger</property>
+		<property name="log-path">${sys:log.dir:-./logs}</property>
+		<property name="level-application">${sys:log.level.application:-info}</property>
+		<property name="level-root">${sys:log.level.root:-info}</property>
+		<property name="sizePolicy">30 MB</property>
+		<property name="log-pattern">%d{yyyy-MM-dd HH:mm:ss,SSS}{UTC} UTC [%p] [%c]
+			(%t) %m %ex%n</property>
+		<property name="rolled-file-postfix">-%d{yyyy-MM-dd}.%i.log.gz</property>
+		<property name="lastModified">30D</property>
+	</properties>
+	<Appenders>
+		<Console name="STDOUT" target="SYSTEM_OUT">
+			<PatternLayout pattern="${log-pattern}" />
+		</Console>
+
+		<RollingFile name="serverLog"
+			fileName="${log-path}/server.log"
+			filePattern="${log-path}/archive/%d{yyyy-MM-dd}/server${rolled-file-postfix}">
+			<PatternLayout pattern="${log-pattern}" />
+			<Policies>
+				<SizeBasedTriggeringPolicy
+					size="${sizePolicy}" />
+				<TimeBasedTriggeringPolicy interval="1"
+					modulate="true" />
+			</Policies>
+			<DefaultRolloverStrategy max="100">
+				<Delete basePath="${log-path}" maxDepth="2">
+					<IfFileName glob="server-*.log.gz" />
+					<IfLastModified age="${lastModified}" />
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingFile>
+		<RollingFile name="ErrorLog"
+			fileName="${log-path}/error.log"
+			filePattern="${log-path}/archive/%d{yyyy-MM-dd}/error${rolled-file-postfix}">
+			<PatternLayout pattern="${log-pattern}" />
+			<Policies>
+				<SizeBasedTriggeringPolicy
+					size="${sizePolicy}" />
+				<TimeBasedTriggeringPolicy interval="1"
+					modulate="true" />
+			</Policies>
+			<DefaultRolloverStrategy max="100">
+				<Delete basePath="${log-path}" maxDepth="2">
+					<IfFileName glob="error-*.log.gz" />
+					<IfLastModified age="${lastModified}" />
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingFile>
+
+	</Appenders>
+	<Loggers>
+		<Root level="${level-root}">
+			<AppenderRef ref="ErrorLog" level="warn" />
+			<AppenderRef ref="serverLog" level="${level-root}"/>
+		</Root>
+		<Logger name="${server-logger}" level="${level-application}" additivity="false">
+			<AppenderRef ref="serverLog" level="${level-application}"/>
+		</Logger>
+		<Logger name="${error-logger}" level="warn" additivity="false">
+			<AppenderRef ref="ErrorLog" />
+		</Logger>
+		<Logger name="org.apache.kafka.clients.admin" level="warn" additivity="false">
+			<AppenderRef ref="ErrorLog" />
+		</Logger>
+		<Logger name="org.apache.kafka.common.utils" level="warn" additivity="false">
+			<AppenderRef ref="ErrorLog" />
+		</Logger>
+	</Loggers>
+</Configuration>
